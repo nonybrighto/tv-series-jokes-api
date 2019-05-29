@@ -49,6 +49,12 @@ module.exports = (sequelize, DataTypes) => {
       foreignKey: 'ownerId',
       as: 'jokes'
     });
+
+    User.belongsToMany(models.Joke, {
+      through: 'UserJokeLikes',
+      as: 'likedJokes',
+      foreignKey: 'userId'
+    });
   };
 
   User.beforeCreate(async (user, options) => {

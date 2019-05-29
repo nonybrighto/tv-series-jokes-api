@@ -24,8 +24,8 @@ router.route('/popular')
 //       .get(JokeController.getJoke)
 //       .delete([authMiddleWare.jwtAuthentication],JokeController.deleteJoke);
       
-// router.route('/:jokeId/likes')
-//             .get([paginationMiddleWare],JokeController.getJokeLikers)
+router.route('/:jokeId/likes')
+            .get([paginationMiddleWare],JokeController.getJokeLikers)
 //             .put([authMiddleWare.jwtOptionalAuthentication],JokeController.likeJoke)
 //             .delete([authMiddleWare.jwtAuthentication],JokeController.unlikeJoke);
 

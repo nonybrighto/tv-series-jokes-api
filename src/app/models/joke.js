@@ -49,6 +49,13 @@ module.exports = (sequelize, DataTypes) =>{
       foreignKey: 'movieId',
       as: 'movie'
     });
+
+    Joke.belongsToMany(models.User, {
+      through: 'UserJokeLikes',
+      timestamps: false,
+      as: 'likers',
+      foreignKey: 'jokeId'
+    });
   };
   return Joke;
 };

@@ -5,3 +5,4 @@ coverage
 .env
 src/config/test.json
 src/config/config.example.js
+raw_queries.sql

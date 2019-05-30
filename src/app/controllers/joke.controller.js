@@ -17,9 +17,14 @@ async function getJokes(req, res, next){
         scopes.push('popular')
     }
 
+        // await listResponse({
+        //     itemCount: await Joke.count(),
+        //     getItems: async (skip, limit) => await  Joke.scope(scopes).findAll({ offset: skip, limit: limit}),
+        //     errorMessage: 'Error occured while getting jokes'
+        // })(req, res, next);
         await listResponse({
             itemCount: await Joke.count(),
-            getItems: async (skip, limit) => await  Joke.scope(scopes).findAll({ offset: skip, limit: limit}),
+            getItems: async (skip, limit) => await  Joke.getJokes(),
             errorMessage: 'Error occured while getting jokes'
         })(req, res, next);
 

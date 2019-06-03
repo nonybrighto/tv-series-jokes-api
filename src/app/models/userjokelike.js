@@ -4,6 +4,7 @@ module.exports = (sequelize, DataTypes) => {
     userId: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      primaryKey: true,
       references: {
         model: 'Users',
         key: 'id'
@@ -12,6 +13,7 @@ module.exports = (sequelize, DataTypes) => {
     jokeId: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      primaryKey: true,
       references: {
         model: 'Jokes',
         key: 'id'
@@ -24,10 +26,11 @@ module.exports = (sequelize, DataTypes) => {
   UserJokeLike.likers = async function(jokeId){
 
        
-        return sequelize.query(`SELECT liker.* FROM Users as liker 
-                              INNER JOIN UserJokeLikes as jokeLikes 
-                              on liker.id = jokeLikes.userId  
-                              where jokeLikes.jokeId = :jokeId`,                             
+        return sequelize.query(`SELECT liker.id, liker.username,liker."profilePhoto"
+                              FROM "Users" as liker 
+                              INNER JOIN "UserJokeLikes" as jokeLikes 
+                              on liker.id = jokeLikes."userId"  
+                              where jokeLikes."jokeId" = :jokeId`,                             
                               { 
                                 nest: true,
                                 model: sequelize.models.User,

@@ -40,44 +40,63 @@ module.exports = (sequelize, DataTypes) =>{
     }
   });
 
-  Joke.getJokes = async function({currentUserId = null}={}){
+  Joke.getJokes = async function({currentUserId = null, popular = false, offset = 0, limit = 200}={}){
 
+    let likeFavSelectString = '';
+    let likeFavJoinString = '';
+    let orderString = '';
+    let currentUserReplacementObject = {};
 
-    let options =  { 
-      hasJoin: true,
-      // model: sequelize.models.Joke,
-      replacements: { currentUserId: currentUserId},
-      // type: sequelize.QueryTypes.SELECT
-      include: [
-        {
-        model: sequelize.models.User,
-        as: 'owner'
-      },
-        {
-        model: sequelize.models.Movie,
-        as: 'movie'
-      }
-      ]
+    if(currentUserId){
+      likeFavSelectString = ` count(case when jokeLike."userId" = :currentUserId then 1 end) > 0 as liked,
+      count(case when jokeFav."userId" = :currentUserId then 1 end) > 0 as favorited, `;
+      likeFavJoinString = ` LEFT OUTER JOIN
+      "UserJokeLikes" as jokeLike
+      ON
+      jokeLike."jokeId" = joke.id
+      LEFT OUTER JOIN
+      "UserJokeFavorites" as jokeFav
+      ON
+      jokeFav."jokeId" = joke.id 
+      GROUP BY joke.id, movie.id, owner.id
+      `;
+
+      currentUserReplacementObject = { currentUserId: currentUserId };
     }
 
-    sequelize.models.Joke._validateIncludedElements(options);
+    if(popular){
+      orderString = ' joke."likeCount" DESC ';
+    }else{
+      orderString = ' joke."createdAt" DESC ';
+    }
 
-       //TODO: remove joins when there are no other users
-    return sequelize.query(`SELECT joke.*, count(case when jokeLike.userId = :currentUserId then 1 end) > 0 as isLiked, owner.id as 'owner.id', owner.username as 'owner.username',  movie.id as 'movie.id', movie.name as 'movie.name'
-      FROM Jokes as joke
+
+    //TODO: remove joins when there are no other users
+    return sequelize.query(`SELECT joke.*, 
+      ${likeFavSelectString}
+      owner.id as "owner.id", owner.username as "owner.username",  
+      owner."profilePhoto" as "owner.profilePhoto",
+      movie.id as "movie.id", movie.name as "movie.name", movie."tmdbMovieId" as "movie.tmdbMovieId",
+      movie."jokeCount" as "movie.jokeCount", movie."followerCount" as "movie.followerCount", 
+      movie."firstAirDate" as "movie.firstAirDate" 
+      FROM "Jokes" as joke
       INNER JOIN 
-      Users as owner
+      "Users" as owner
       ON 
-      owner.id = joke.ownerId
+      owner.id = joke."ownerId"
       INNER JOIN
-      Movies as movie
-      ON movie.id = joke.movieId
-      LEFT OUTER JOIN
-      UserJokeLikes as jokeLike
-      ON
-      jokeLike.jokeId = joke.id
-      GROUP BY joke.title`,                             
-         options);
+      "Movies" as movie
+      ON movie.id = joke."movieId"
+      ${likeFavJoinString}
+      ORDER BY ${orderString}
+      LIMIT 10 OFFSET 0`,                             
+          { 
+            nest: true,
+            raw: true,
+            model: sequelize.models.Joke,
+            replacements: {offset: offset, limit: limit, ...currentUserReplacementObject},
+            type: sequelize.QueryTypes.SELECT
+          });
   }
 
   Joke.associate = function(models) {
@@ -96,6 +115,11 @@ module.exports = (sequelize, DataTypes) =>{
       timestamps: false,
       as: 'likers',
       foreignKey: 'jokeId'
+    });
+
+    Joke.hasMany(models.Comment, {
+      foreignKey: 'ownerId',
+      as: 'jokes'
     });
   };
   return Joke;

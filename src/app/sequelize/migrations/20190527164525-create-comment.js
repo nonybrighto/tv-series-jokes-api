@@ -8,14 +8,31 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
+
       content: {
         type: Sequelize.TEXT
       },
-      ownerId: {
-        type: Sequelize.INTEGER
+      anonymousName: {
+        type: Sequelize.STRING,
+        allowNull: true,
       },
-      movieId: {
-        type: Sequelize.INTEGER
+      ownerId: {
+        type: Sequelize.INTEGER,
+        allowNull: true,
+        references: {
+          model: 'Users',
+          key: 'id'
+        },
+        onDelete: 'SET NULL'
+      },
+      jokeId: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        references: {
+          model: 'Jokes',
+          key: 'id'
+        },
+        onDelete: 'CASCADE'
       },
       createdAt: {
         allowNull: false,

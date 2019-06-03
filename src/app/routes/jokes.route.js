@@ -13,24 +13,23 @@ const router = express.Router();
 
 
 router.route('/')
-      .get([paginationMiddleWare, jwtOptionalAuthentication], JokeController.getJokes)                 
-    //   .post([jwtRequiredAuthentication, validate(jokeCreateValidator)], JokeController.addJoke);
+      .get([paginationMiddleWare, jwtOptionalAuthentication], JokeController.getJokes)                
+      .post([jwtRequiredAuthentication, /*validate(jokeCreateValidator)*/], JokeController.addJoke);
 
 
 router.route('/popular')
       .get([paginationMiddleWare, jwtOptionalAuthentication], JokeController.getJokes);
       
-// router.route('/:jokeId')
-//       .get(JokeController.getJoke)
-//       .delete([authMiddleWare.jwtAuthentication],JokeController.deleteJoke);
+router.route('/:jokeId')
+      .delete([jwtRequiredAuthentication],JokeController.deleteJoke);
       
 router.route('/:jokeId/likes')
             .get([paginationMiddleWare],JokeController.getJokeLikers)
-//             .put([authMiddleWare.jwtOptionalAuthentication],JokeController.likeJoke)
-//             .delete([authMiddleWare.jwtAuthentication],JokeController.unlikeJoke);
+            .put([jwtOptionalAuthentication],JokeController.likeJoke)
+            .delete([jwtOptionalAuthentication],JokeController.unlikeJoke);
 
-// router.route('/:jokeId/comments')
-//             .get([paginationMiddleWare], JokeController.getJokeComments)
-//             .post([authMiddleWare.jwtOptionalAuthentication, validate(commentValidator.addComment)], JokeController.addJokeComment);      
+router.route('/:jokeId/comments')
+            .get([paginationMiddleWare], JokeController.getJokeComments)
+            .post([jwtOptionalAuthentication /*, validate(commentValidator.addComment)*/], JokeController.addJokeComment);      
 
 export default router;

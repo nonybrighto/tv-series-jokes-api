@@ -50,6 +50,11 @@ module.exports = (sequelize, DataTypes) => {
       as: 'jokes'
     });
 
+    User.hasMany(models.Comment, {
+      foreignKey: 'ownerId',
+      as: 'comments'
+    });
+
     User.belongsToMany(models.Joke, {
       through: 'UserJokeLikes',
       as: 'likedJokes',

@@ -4,5 +4,6 @@ dist
 coverage
 .env
 src/config/test.json
-src/config/config.example.js
 raw_queries.sql
+src/config/config.json
+src/config/config.json

@@ -7,7 +7,7 @@
     "start": "nodemon --exec babel-node src/server.js",
     "build": "babel src --out-dir dist --source-maps",
     "serve": "node dist/server.js",
-    "test": "cross-env NODE_ENV=test mocha --require @babel/register 'test/**/*.spec.js' --timeout 6000"
+    "test": "cross-env NODE_ENV=test mocha --require @babel/register 'test/**/*.spec.js' --timeout 10000"
   },
   "keywords": [
     "express",
@@ -39,7 +39,6 @@
     "jsonwebtoken": "^8.5.1",
     "lodash": "^4.17.11",
     "morgan": "^1.9.1",
-    "mysql2": "^1.6.5",
     "nconf": "^0.10.0",
     "passport": "^0.4.0",
     "passport-facebook-token": "^3.3.0",
@@ -47,6 +46,8 @@
     "passport-jwt": "^4.0.0",
     "passport-local": "^1.0.0",
     "path": "^0.12.7",
+    "pg": "^7.11.0",
+    "pg-hstore": "^2.3.2",
     "save-dev": "^2.0.0",
     "sequelize": "^5.8.6"
   },

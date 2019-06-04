@@ -1,5 +1,6 @@
 import express from 'express';
 import validate  from 'express-validation';
+import multer from 'multer';
 import {jokeCreateValidator} from '../../app/middlewares/validators/joke_validator'
 
 // const commentValidator = require('../../app/middlewares/validators/comment_validator');
@@ -10,11 +11,17 @@ import { jwtRequiredAuthentication, jwtOptionalAuthentication } from '../middlew
 
 
 const router = express.Router();
+const upload = multer({
+      storage: multer.memoryStorage(),
+      limits: {
+        fileSize: 5 * 1024 * 1024 // no larger than 5mb, you can change as needed.
+      }
+    });
 
 
 router.route('/')
       .get([paginationMiddleWare, jwtOptionalAuthentication], JokeController.getJokes)                
-      .post([jwtRequiredAuthentication, /*validate(jokeCreateValidator)*/], JokeController.addJoke);
+      .post([jwtRequiredAuthentication, upload.single('image') /*validate(jokeCreateValidator)*/], JokeController.addJoke);
 
 
 router.route('/popular')

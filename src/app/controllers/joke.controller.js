@@ -1,34 +1,111 @@
 import createError from 'http-errors';
 import httpStatus from 'http-status';
+import got from 'got';
 import models from '../models';
 import listResponse from '../helpers/list_response';
+import config from '../../config/config';
 
 
 const User = models.User;
 const Joke = models.Joke;
 const UserJokeLike = models.UserJokeLike;
 const Comment = models.Comment;
+const Movie = models.Movie;
 const sequelize = models.sequelize;
 
 
 async function addJoke(req, res, next){
-
+    let tr = await sequelize.transaction();
     try{
-        let userId = req.user.id;
+        let currentUserId = req.user.id;
         let title = req.body.title;
         let tmdbMovieId = +req.body.tmdbMovieId;
-        let text = req.body.text;
-        let image;
-    
+        let text = req.body.text;    
         let canAddMovie = false;
-    
         let imageFile = req.file;
+        
+
+        let jokeMovie = await Movie.findOne({where: {tmdbMovieId: tmdbMovieId}});
+        if(jokeMovie){
+            canAddMovie = true;
+        }else{
+            let apiKey = config.get('tmdb-api-key');
+            let response = await got(`https://api.themoviedb.org/3/tv/${tmdbMovieId}?api_key=${apiKey}&append_to_response=credits,images`);
+            
+            let gottenMovie = JSON.parse(response.body);
+
+            let movieAdded = await Movie.create({name: gottenMovie.name, tmdbMovieId: gottenMovie.id, overview: gottenMovie.overview, posterPath: gottenMovie.poster_path, firstAirDate: gottenMovie.first_air_date});
+            if(movieAdded){
+                jokeMovie = movieAdded;
+                canAddMovie = true;
+            }
+        }
+
+        if(canAddMovie){
+            if(text === null &&  imageFile === null ){
+                return  next(createError(httpStatus.UNPROCESSABLE_ENTITY, 'Joke could not be found'));
+            }
+            let imageUrl = 'http://theimage'
+            if(imageFile){
+                //TODO: upload image and get URL
+            }
+            
+            let jokeAdded = await Joke.create({title:title, text:text, movieId: jokeMovie.id, ownerId: currentUserId, imageUrl: imageUrl}, {transaction: tr});
+
+        await User.update({jokeCount: models.sequelize.literal('"jokeCount" + 1')}, {where: {id: currentUserId}, transaction: tr});
+        await Movie.update({jokeCount: models.sequelize.literal('"jokeCount" + 1')}, {where: {tmdbMovieId: tmdbMovieId}, transaction: tr});
+
+        tr.commit();
+
+        let joke = await Joke.findOne({where: {id: jokeAdded.id}, include: [{
+            model: User,
+            as: 'owner'
+          },{
+            model: Movie,
+            as: 'movie'
+          }]});
+
+          return res.status(httpStatus.CREATED).send(joke);
+        }
+
 
     }catch(error){
         console.log(error);
+        tr.rollback();
         next(createError('Internal error occured while adding joke'));
     }
     
+}
+
+async function deleteJoke(req, res, next){
+    let tr = await sequelize.transaction();
+    try{
+        let currentUserId = req.user.id;
+        let jokeId = req.params.jokeId;
+        let joke = await Joke.findByPk(jokeId);
+
+        if(!joke){
+            return next(createError(httpStatus.NOT_FOUND, 'Joke could not be found'));
+        }else if(currentUserId === joke.ownerId){
+
+            //TODO: remove the jokes image if any
+
+            await Joke.destroy({where:{id: jokeId}, transaction: tr});
+            await User.update({jokeCount: models.sequelize.literal('"jokeCount" - 1')}, {where: {id: currentUserId}, transaction: tr});
+            await Movie.update({jokeCount: models.sequelize.literal('"jokeCount" - 1')}, {where: {id: jokeId}, transaction: tr});
+            tr.commit();
+
+            res.sendStatus(httpStatus.NO_CONTENT);
+
+        }else{
+            return next(createError(httpStatus.UNAUTHORIZED, 'You cannot delete another user\'s joke'));
+        }
+
+    }catch(error){
+        console.log(error);
+        tr.rollback();
+        next(createError('Internal error occured while deleting joke'));
+    }
 }
 
 async function getJokes(req, res, next){
@@ -78,39 +155,39 @@ async function getJokeLikers(req, res, next){
 
 }
 
-async function deleteJoke(req, res, next){
+// async function deleteJoke(req, res, next){
 
-    try{
-        let jokeId = req.params.jokeId;
-        let currentUserId = req.user.id;
+//     try{
+//         let jokeId = req.params.jokeId;
+//         let currentUserId = req.user.id;
 
-        let joke = await Joke.findByPk(jokeId);
-        if(!joke){
-            next(createError(httpStatus.NOT_FOUND, 'Joke could not be found'));
-        }else if(joke.ownerId === currentUserId){
+//         let joke = await Joke.findByPk(jokeId);
+//         if(!joke){
+//             next(createError(httpStatus.NOT_FOUND, 'Joke could not be found'));
+//         }else if(joke.ownerId === currentUserId){
             
-            let deleted = await joke.destroy();
-            if(deleted){
-                //TODO:remove from server
-                return res.sendStatus(httpStatus.NO_CONTENT);
-            }else{
-                console.log('error');
-                return next(createError('Internal error occured while deleting joke'));
-            }
+//             let deleted = await joke.destroy();
+//             if(deleted){
+//                 //TODO:remove from server
+//                 return res.sendStatus(httpStatus.NO_CONTENT);
+//             }else{
+//                 console.log('error');
+//                 return next(createError('Internal error occured while deleting joke'));
+//             }
 
-        }else{
-            next(createError(httpStatus.FORBIDDEN, 'You dont have the permission to delete this joke'));
-        }
-
-
+//         }else{
+//             next(createError(httpStatus.FORBIDDEN, 'You dont have the permission to delete this joke'));
+//         }
 
 
-    }catch(error){
-        console.log(error);
-        return next(createError('Internal error occured while deleting joke'));
-    }
+
+
+//     }catch(error){
+//         console.log(error);
+//         return next(createError('Internal error occured while deleting joke'));
+//     }
     
-}
+// }
 
 async function likeJoke(req, res, next){
     

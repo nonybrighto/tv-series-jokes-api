@@ -21,7 +21,8 @@ nconf.defaults({
 	'facebook-client-id':'1234546555',
 	'facebook-client-secret':'323446674',
     'google-client-id':'355677712233',
-	'jwt_token-expire-days':30
+	'jwt_token-expire-days':30,
+	'tmdb-api-key': 'ff066eac5b5bd813f4cb906eb5cf2c21'
 });
 
 export default nconf;

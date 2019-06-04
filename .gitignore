@@ -3,7 +3,6 @@ dist
 .nyc_output
 coverage
 .env
-src/config/test.json
 raw_queries.sql
 src/config/config.json
-src/config/config.json
+src/config/config.js

@@ -30,5 +30,52 @@ module.exports = (sequelize, DataTypes) => {
       as: 'Jokes'
     });
   };
+
+  Movie.getMovies = async function({movieId, currentUserId, limit, offset}){
+
+    let movieFollowedSelectString = '';
+    let movieFollowedJoinString = '';
+    let currentUserReplacementObject = {};
+    let whereString = '';
+    let limitOffsetString = '';
+    let limitOffsetObject = {};
+
+    if(currentUserId){
+        movieFollowedSelectString = ', mvf."userId" IS NOT NULL as "followed" ';
+        movieFollowedJoinString  = ` LEFT OUTER JOIN
+        "UserMovieFollows" as mvf
+        ON
+        movie.id = mvf."movieId" AND mvf."userId" = :userId`;
+        currentUserReplacementObject = {userId: currentUserId};
+    }
+
+    if(movieId){
+        whereString = ' WHERE movie.id = :movieId '
+    }else{
+      limitOffsetString = ` LIMIT :limit OFFSET :offset `;
+      limitOffsetObject = {limit: limit, offset: offset};
+    }
+       
+    return sequelize.query(`SELECT movie.* ${movieFollowedSelectString}
+                            FROM 
+                            "Movies" as movie
+                            ${movieFollowedJoinString}
+                            ${whereString}
+                            ${limitOffsetString}
+                            `,                             
+                          { 
+                            nest: true,
+                            model: sequelize.models.Movie,
+                            replacements: { movieId:movieId, ...currentUserReplacementObject, ...limitOffsetObject},
+                            type: sequelize.QueryTypes.SELECT
+                          });
+}
+
+
+Movie.getMovie = async function({movieId, currentUserId}){
+
+    let movie = await Movie.getMovies({movieId: movieId, currentUserId: currentUserId});
+    return (movie.length > 0)? movie[0] : null;
+}
   return Movie;
 };

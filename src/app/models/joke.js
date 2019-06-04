@@ -40,12 +40,19 @@ module.exports = (sequelize, DataTypes) =>{
     }
   });
 
-  Joke.getJokes = async function({currentUserId = null, popular = false, offset = 0, limit = 200}={}){
+  Joke.getJokes = async function({currentUserId = null, popular = false, movieId, offset = 0, limit = 200}){
 
     let likeFavSelectString = '';
     let likeFavJoinString = '';
     let orderString = '';
     let currentUserReplacementObject = {};
+    let whereString = '';
+    let whereObject = {};
+
+    if(movieId){
+      whereString = ` WHERE joke."movieId" = :movieId `;
+      whereObject = {movieId: movieId};
+    }
 
     if(currentUserId){
       likeFavSelectString = ` jokeLike."userId" IS NOT NULL as  liked,
@@ -58,6 +65,7 @@ module.exports = (sequelize, DataTypes) =>{
       "UserJokeFavorites" as jokeFav
       ON
       jokeFav."jokeId" = joke.id AND jokeFav."userId" = :userId
+      ${whereString}
       GROUP BY joke.id, movie.id, owner.id, jokeLike."userId", jokeFav."userId"
       `;
 
@@ -69,6 +77,8 @@ module.exports = (sequelize, DataTypes) =>{
     }else{
       orderString = ' joke."createdAt" DESC ';
     }
+
+    
 
 
     //TODO: remove joins when there are no other users
@@ -88,13 +98,14 @@ module.exports = (sequelize, DataTypes) =>{
       "Movies" as movie
       ON movie.id = joke."movieId"
       ${likeFavJoinString}
+      ${!currentUserId? whereString : ''}
       ORDER BY ${orderString}
       LIMIT :limit OFFSET :offset`,                             
           { 
             nest: true,
             raw: true,
             model: sequelize.models.Joke,
-            replacements: {offset: offset, limit: limit, ...currentUserReplacementObject},
+            replacements: {offset: offset, limit: limit, ...currentUserReplacementObject, ...whereObject},
             type: sequelize.QueryTypes.SELECT
           });
   }

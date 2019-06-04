@@ -48,20 +48,20 @@ module.exports = (sequelize, DataTypes) =>{
     let currentUserReplacementObject = {};
 
     if(currentUserId){
-      likeFavSelectString = ` count(case when jokeLike."userId" = :currentUserId then 1 end) > 0 as liked,
-      count(case when jokeFav."userId" = :currentUserId then 1 end) > 0 as favorited, `;
+      likeFavSelectString = ` jokeLike."userId" IS NOT NULL as  liked,
+      jokeFav."userId" IS NOT NULL as  favorited, `;
       likeFavJoinString = ` LEFT OUTER JOIN
       "UserJokeLikes" as jokeLike
       ON
-      jokeLike."jokeId" = joke.id
+      jokeLike."jokeId" = joke.id AND jokeLike."userId" = :userId
       LEFT OUTER JOIN
       "UserJokeFavorites" as jokeFav
       ON
-      jokeFav."jokeId" = joke.id 
-      GROUP BY joke.id, movie.id, owner.id
+      jokeFav."jokeId" = joke.id AND jokeFav."userId" = :userId
+      GROUP BY joke.id, movie.id, owner.id, jokeLike."userId", jokeFav."userId"
       `;
 
-      currentUserReplacementObject = { currentUserId: currentUserId };
+      currentUserReplacementObject = { userId: currentUserId };
     }
 
     if(popular){
@@ -89,7 +89,7 @@ module.exports = (sequelize, DataTypes) =>{
       ON movie.id = joke."movieId"
       ${likeFavJoinString}
       ORDER BY ${orderString}
-      LIMIT 10 OFFSET 0`,                             
+      LIMIT :limit OFFSET :offset`,                             
           { 
             nest: true,
             raw: true,

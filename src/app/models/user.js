@@ -105,6 +105,75 @@ module.exports = (sequelize, DataTypes) => {
     return {token: this.generateJwtToken(), tokenExpires: expirationDate, user: {id: this.id, username: this.username, email: this.email}};
   }
 
+  User.getUsers = async function({currentUserId, userId, followers, following, limit, offset}){
+
+
+    let userFollowString = '';
+    let userFollowJoinString = '';
+    let whereString = '';
+    let limitOffsetString = '';
+    let followersString = '';
+    let followingString = '';
+    if(currentUserId){
+      userFollowString = ' , flwr."followingId" IS NOT NULL as "followed", flwg."followerId" IS NOT NULL as "following" ';
+
+      userFollowJoinString = `  LEFT OUTER JOIN
+      "UserFriendFollows" as flwr
+      ON
+      usr.id = flwr."followingId" AND flwr."followerId" = :currentUserId
+      LEFT OUTER JOIN
+      "UserFriendFollows" as flwg
+      ON
+      usr.id = flwg."followerId" AND flwg."followingId" = :currentUserId `;
+    }
+
+    if(followers){
+      followersString = ` INNER JOIN
+      "UserFriendFollows" as ffl
+      ON
+      usr.id = ffl."followerId" AND ffl."followingId" = :userId `;
+    }else if(following){
+      followingString = ` INNER JOIN
+      "UserFriendFollows" as ffl
+      ON
+      usr.id = ffl."followingId" AND ffl."followerId" = :userId `;
+    }
+
+    if(userId && !followers && !following){
+      whereString = ' WHERE usr.id = :userId '
+    }else{
+      limitOffsetString = ` LIMIT :limit OFFSET :offset `;
+    }
+
+    User.getUserFollowers = async function({userId, currentUserId, limit, offset}){
+
+
+
+    }
+
+
+
+    return sequelize.query(`SELECT usr.* ${userFollowString}
+                        FROM "Users" as usr
+                         ${followersString}
+                         ${followingString}
+                         ${userFollowJoinString} 
+                         ${whereString}
+                         ${limitOffsetString} `,                             
+                          { 
+                            nest: true,
+                            model: sequelize.models.User,
+                            replacements: { currentUserId: currentUserId, userId: userId, limit: limit, offset: offset },
+                            type: sequelize.QueryTypes.SELECT
+                          });
+  }
+
+User.getUser = async function({userId, currentUserId}){
+
+    let user = await User.getUsers({userId: userId, currentUserId: currentUserId});
+    return (user.length > 0)? user[0] : null;
+}
+
   User.canLogin = async function(credential, password){
 
     let userDataToFind = {};

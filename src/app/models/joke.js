@@ -40,7 +40,7 @@ module.exports = (sequelize, DataTypes) =>{
     }
   });
 
-  Joke.getJokes = async function({currentUserId = null, popular = false, movieId, offset = 0, limit = 200}){
+  Joke.getJokes = async function({currentUserId, popular, movieId, ownerId, offset, limit}){
 
     let likeFavSelectString = '';
     let likeFavJoinString = '';
@@ -52,6 +52,9 @@ module.exports = (sequelize, DataTypes) =>{
     if(movieId){
       whereString = ` WHERE joke."movieId" = :movieId `;
       whereObject = {movieId: movieId};
+    }else if(ownerId){
+      whereString = ` WHERE joke."ownerId" = :ownerId `;
+      whereObject = {ownerId: ownerId };
     }
 
     if(currentUserId){

@@ -40,14 +40,14 @@ module.exports = (sequelize, DataTypes) =>{
     }
   });
 
-  Joke.getJokes = async function({currentUserId, popular, movieId, ownerId, offset, limit}){
+  Joke.getJokes = async function({currentUserId, popular, movieId, ownerId, favorite, offset, limit}){
 
     let likeFavSelectString = '';
     let likeFavJoinString = '';
     let orderString = '';
-    let currentUserReplacementObject = {};
     let whereString = '';
     let whereObject = {};
+    let favoriteString = '';
 
     if(movieId){
       whereString = ` WHERE joke."movieId" = :movieId `;
@@ -57,22 +57,28 @@ module.exports = (sequelize, DataTypes) =>{
       whereObject = {ownerId: ownerId };
     }
 
+    if(favorite){
+
+      favoriteString = ` INNER JOIN
+          "UserJokeFavorites" as userFav
+          ON
+          joke.id = userFav."jokeId" AND userFav."userId" = :currentUserId `;
+    }
+
     if(currentUserId){
       likeFavSelectString = ` jokeLike."userId" IS NOT NULL as  liked,
       jokeFav."userId" IS NOT NULL as  favorited, `;
       likeFavJoinString = ` LEFT OUTER JOIN
       "UserJokeLikes" as jokeLike
       ON
-      jokeLike."jokeId" = joke.id AND jokeLike."userId" = :userId
+      jokeLike."jokeId" = joke.id AND jokeLike."userId" = :currentUserId
       LEFT OUTER JOIN
       "UserJokeFavorites" as jokeFav
       ON
-      jokeFav."jokeId" = joke.id AND jokeFav."userId" = :userId
+      jokeFav."jokeId" = joke.id AND jokeFav."userId" = :currentUserId
       ${whereString}
       GROUP BY joke.id, movie.id, owner.id, jokeLike."userId", jokeFav."userId"
       `;
-
-      currentUserReplacementObject = { userId: currentUserId };
     }
 
     if(popular){
@@ -93,6 +99,7 @@ module.exports = (sequelize, DataTypes) =>{
       movie."jokeCount" as "movie.jokeCount", movie."followerCount" as "movie.followerCount", 
       movie."firstAirDate" as "movie.firstAirDate" 
       FROM "Jokes" as joke
+      ${favoriteString}
       INNER JOIN 
       "Users" as owner
       ON 
@@ -108,7 +115,7 @@ module.exports = (sequelize, DataTypes) =>{
             nest: true,
             raw: true,
             model: sequelize.models.Joke,
-            replacements: {offset: offset, limit: limit, ...currentUserReplacementObject, ...whereObject},
+            replacements: {offset: offset, limit: limit, currentUserId: currentUserId, ...whereObject},
             type: sequelize.QueryTypes.SELECT
           });
   }

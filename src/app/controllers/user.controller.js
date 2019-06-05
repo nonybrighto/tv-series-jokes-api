@@ -5,148 +5,117 @@ import listResponse from '../helpers/list_response';
 
 
 const User = models.User;
-const UserFriendFollow = models.UserFriendFollow;
 const Joke = models.Joke;
+const UserJokeFavorite = models.UserJokeFavorite;
 const sequelize = models.sequelize;
 
-async function getAllUsers(req, res, next){
-       
-    try{ 
-        let currentUserId = (req.user)? req.user.id: null;       
-        await listResponse({
-            itemCount: await User.count(),
-            getItems: async (skip, limit) => await  User.getUsers({ currentUserId: currentUserId, offset: skip, limit: limit }),
-            errorMessage: 'Error occured while getting users'
-        })(req, res, next);
-    }catch(error){
-        console.log(error);
-        next(createError('Error occured while getting users'));
-    }  
-}
 
-async function getUser(req, res, next){
+async function getCurrentUser(req, res, next){
 
     try{
 
-        let currentUserId = (req.user)? req.user.id: null;
-        let userId = req.params.userId;
-    
-                let user = await User.getUser({userId: userId, currentUserId: currentUserId});
-                if(user){
-                    res.status(httpStatus.OK).send(user);
-                }else{
-                    next(createError(httpStatus.NOT_FOUND, 'User could not be found'));
-                }
+        let currentUserId = req.user.id;
+        let currentUser = await User.scope('withHidden').findByPk(currentUserId);
 
+        res.status(httpStatus.OK).send(currentUser);
 
     }catch(error){
         console.log(error);
-        next(createError('Error occured while getting user'));
+        next(createError('Error occured while changing current user'));
     }
 
 }
-
-async function getUserFollowers(req, res, next){
+async function getFavoriteJokes(req, res, next){
 
     try{
-        let userId = req.params.userId;
-        let currentUserId = (req.user)? req.user.id: null;       
+
+        let currentUserId = req.user.id;
+
         await listResponse({
-            itemCount: await UserFriendFollow.count({where:{followingId: userId}}),
-            getItems: async (skip, limit) => await  User.getUsers({ currentUserId: currentUserId, userId: userId, followers: true, offset: skip, limit: limit }),
-            errorMessage: 'Error occured while getting users'
+            itemCount: await UserJokeFavorite.count({where:{userId: currentUserId}}),
+            getItems: async (offset, limit) => await  Joke.getJokes({ currentUserId: currentUserId, favorite: true, offset: offset, limit: limit }),
+            errorMessage: 'Error occured while getting favorite jokes'
         })(req, res, next);
 
     }catch(error){
-        next(createError('Error occured while getting user followers'));
+        console.log(error);
+        next(createError('Error occured while getting favorite jokes'));
     }
 }
+async function addJokeToFavorite(req, res, next){
 
-async function followUser(req, res, next){
-
-    let tr = await sequelize.transaction();
     try{
- 
-         let currentUserId  = req.user.id;
-         let userId = req.params.userId;
- 
-         if(await UserFriendFollow.findOne({where: {followerId: currentUserId, followingId: userId}})){
-             return next(next(createError(httpStatus.CONFLICT, 'User already followed')));
-         }
-         await UserFriendFollow.create({followerId: currentUserId, followingId: userId}, {transaction: tr});
-         await User.update({followerCount: models.sequelize.literal('"followerCount" + 1')}, {where: {id: userId}, transaction: tr});
-         tr.commit();
-         return res.sendStatus(httpStatus.NO_CONTENT);
-         
+        let currentUserId = req.user.id;
+        let jokeId = req.params.jokeId;
+
+        if(await UserJokeFavorite.findOne({where: {userId: currentUserId, jokeId: jokeId}})){
+            next(createError(httpStatus.CONFLICT,'Joke already added to favorite'));
+        }else{
+            await UserJokeFavorite.create({userId: currentUserId, jokeId: jokeId});
+            return res.sendStatus(httpStatus.NO_CONTENT);
+        }
     }catch(error){
         console.log(error);
-        tr.rollback();
-     next(createError('Internal error occured while following user'));
+        next(createError('Error occured while adding favorite joke'));
     }
-
 }
+async function removeJokeFromFavorite(req, res, next){
 
-async function unfollowUser(req, res, next){
-
-    let tr = await sequelize.transaction();
     try{
- 
-        let currentUserId  = req.user.id;
-        let userId = req.params.userId;
- 
-        if(await UserFriendFollow.findOne({where: {followerId: currentUserId, followingId: userId}})){
-            await UserFriendFollow.destroy({where: {followerId: currentUserId, followingId: userId}, transaction: tr});
-            await User.update({followerCount: models.sequelize.literal('"followerCount" - 1')}, {where: {id: userId}, transaction: tr});
-            tr.commit();
+        let currentUserId = req.user.id;
+        let jokeId = req.params.jokeId;
+
+        if(await UserJokeFavorite.findOne({where: {userId: currentUserId, jokeId: jokeId}})){
+            await UserJokeFavorite.destroy({where:{userId: currentUserId, jokeId: jokeId}});
             return res.sendStatus(httpStatus.NO_CONTENT);
         }else{
-            return next(next(createError(httpStatus.NOT_FOUND, 'User not followed')));
+            next(createError(httpStatus.NOT_FOUND,'Joke not in favorite'));
+            
         }
-         
+
     }catch(error){
         console.log(error);
-        tr.rollback();
-     next(createError('Internal error occured while unfollowing user'));
+        next(createError('Error occured while removing favorite joke'));
     }
-
-}
-
-async function getUserFollowing(req, res, next){
-
-    try{
-
-        let userId = req.params.userId;
-        let currentUserId = (req.user)? req.user.id: null;       
-        await listResponse({
-            itemCount: await UserFriendFollow.count({where:{followerId: userId}}),
-            getItems: async (skip, limit) => await  User.getUsers({ currentUserId: currentUserId, userId: userId, following: true, offset: skip, limit: limit }),
-            errorMessage: 'Error occured while getting users'
-        })(req, res, next);
-
-
-    }catch(error){
-        next(createError('Error occured while getting user following'));
-    }
-
 }
 async function getUserJokes(req, res, next){
 
     try{
-
-        let currentUserId = (req.user)? req.user.id: null;
-        let userId = req.params.userId;
+        let currentUserId = req.user.id;
 
         await listResponse({
-            itemCount: await Joke.count({where:{ownerId: userId}}),
-            getItems: async (offset, limit) => await  Joke.getJokes({ offset: offset, limit: limit, currentUserId: currentUserId, ownerId: userId }),
+            itemCount: await Joke.count({where:{ownerId: currentUserId}}),
+            getItems: async (offset, limit) => await  Joke.getJokes({ offset: offset, limit: limit, currentUserId: currentUserId, ownerId: currentUserId }),
             errorMessage: 'Error occured while getting user jokes'
         })(req, res, next);
 
-   }catch(error){
-    console.log(error);
-    next(createError('Internal error occured while getting user jokes'));
-   }
+    }catch(error){
+        console.log(error);
+        next(createError('Error occured while getting user jokes joke'));
+    }
+}
 
+
+
+async function changeProfilePhoto(req, res, next){
+
+    try{
+
+        let profilePhoto = req.file;
+        if(profilePhoto){
+            let currentUserId = req.user.id;
+            //upload to firebase
+            let photoUrl = 'the new photo url'
+            await User.update({profilePhoto: photoUrl}, {where: {id: currentUserId}});
+            res.sendStatus(httpStatus.NO_CONTENT);
+        }else{
+            next(createError(httpStatus.UNPROCESSABLE_ENTITY,'Image file should be present'));
+        }
+
+    }catch(error){
+        console.log(error);
+        next(createError('Error occured while changing profile photo'));
+    }
 }
 
 async function changePassword(req, res, next){
@@ -175,7 +144,7 @@ async function changePassword(req, res, next){
 
 }
 
-export default {getAllUsers, getUser, getUserFollowers, followUser, unfollowUser, getUserFollowing, getUserJokes, changePassword};
+export default {getCurrentUser, getFavoriteJokes,  changeProfilePhoto, addJokeToFavorite, removeJokeFromFavorite, getUserJokes, changePassword};
 
 
 

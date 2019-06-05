@@ -4,5 +4,6 @@ dist
 coverage
 .env
 raw_queries.sql
-src/config/config.json
+seeders
 src/config/config.js
+src/config/config.json

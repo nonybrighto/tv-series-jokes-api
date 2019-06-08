@@ -1,6 +1,6 @@
 const Joi = require('joi');
 
-const jokeCreateValidator = {
+const addJoke = {
     
     body: {
         title: Joi.string().trim().min(3).required().label('Title should be 3 characters or more'),
@@ -9,4 +9,4 @@ const jokeCreateValidator = {
     }
 }
 
-export {jokeCreateValidator};
+export default {addJoke};

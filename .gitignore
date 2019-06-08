@@ -7,3 +7,4 @@ raw_queries.sql
 seeders
 src/config/config.js
 src/config/config.json
+src/config/service-account-key.json

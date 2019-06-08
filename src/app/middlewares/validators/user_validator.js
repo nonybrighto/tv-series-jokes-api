@@ -1,33 +1,33 @@
 import joi from 'joi';
 
 
-module.exports.createUser = {
+const addUser = {
     
     body: {
         username: joi.string().trim().min(3).required().label('Username should be three characters or more'),
         email: joi.string().trim().email().required().label('Please use a valid email'),
-        password: joi.string().regex(/^(((?=.*[a-z])(?=.*[A-Z]))|((?=.*[a-z])(?=.*[0-9]))|((?=.*[A-Z])(?=.*[0-9])))(?=.{6,})/)
-                .required().label('Your password should be six or more characters with letters and numbers')
+        password: joi.string().min(4)
+                .required().label('Your password should be 4 or more characters')
     }
 }
 
-module.exports.changePassword = {
+const changePassword = {
 
     body: {
         oldPassword:joi.string().min(3).required(),
-        newPassword:joi.string().regex(/^(((?=.*[a-z])(?=.*[A-Z]))|((?=.*[a-z])(?=.*[0-9]))|((?=.*[A-Z])(?=.*[0-9])))(?=.{6,})/)
-        .required().label('Your password should be six or more characters with letters and numbers')
+        newPassword:joi.string().min(4)
+        .required().label('Your password should be six or more characters')
     }
 }
 
-module.exports.forgotPasswordRequest = {
+const forgotPasswordRequest = {
 
     body: {
         email: joi.string().trim().email().required()
     }
 }
 
-module.exports.changePasswordWithToken = {
+const changePasswordWithToken = {
 
     body: {
         token: joi.string().min(7).required(), //TODO: set the correct token pattern after deciding
@@ -35,3 +35,6 @@ module.exports.changePasswordWithToken = {
         .required()
     }
 }
+
+
+export default {addUser, changePassword, forgotPasswordRequest, changePasswordWithToken}

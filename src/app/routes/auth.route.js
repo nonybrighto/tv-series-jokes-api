@@ -1,12 +1,14 @@
 import express from 'express';
+import validate  from 'express-validation';
 import authController from '../controllers/auth.controller';
 import {loginLimiter, jwtRequiredAuthentication} from '../middlewares/auth_middleware';
+import userValidator from '../../app/middlewares/validators/user_validator'
 
 const router = express.Router();
 
 
 router.route('/register')
-     .post(authController.register);
+     .post( validate(userValidator.addUser),authController.register);
 
 router.route('/login')
      .post([loginLimiter],authController.login);

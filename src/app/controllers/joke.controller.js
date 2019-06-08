@@ -1,6 +1,7 @@
 import createError from 'http-errors';
 import httpStatus from 'http-status';
 import got from 'got';
+import * as fb from '../../config/firebase_admin';
 import models from '../models';
 import listResponse from '../helpers/list_response';
 import config from '../../config/config';
@@ -45,9 +46,11 @@ async function addJoke(req, res, next){
             if(text === null &&  imageFile === null ){
                 return  next(createError(httpStatus.UNPROCESSABLE_ENTITY, 'Joke could not be found'));
             }
-            let imageUrl = 'http://theimage'
+            let imageUrl;
             if(imageFile){
                 //TODO: upload image and get URL
+                //admin.storage()
+                imageUrl = await fb.upload(imageFile);
             }
             
             let jokeAdded = await Joke.create({title:title, text:text, movieId: jokeMovie.id, ownerId: currentUserId, imageUrl: imageUrl}, {transaction: tr});

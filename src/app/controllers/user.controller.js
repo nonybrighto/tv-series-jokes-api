@@ -1,6 +1,7 @@
 import httpStatus from 'http-status';
 import createError from 'http-errors';
 import models from '../models';
+import * as fb from '../../config/firebase_admin';
 import listResponse from '../helpers/list_response';
 
 
@@ -104,9 +105,19 @@ async function changeProfilePhoto(req, res, next){
         let profilePhoto = req.file;
         if(profilePhoto){
             let currentUserId = req.user.id;
-            //upload to firebase
-            let photoUrl = 'the new photo url'
+            let currentUser = await User.findByPk(currentUserId);
+
+            let photoUrl = await fb.upload(profilePhoto);
             await User.update({profilePhoto: photoUrl}, {where: {id: currentUserId}});
+            
+            try{
+                await fb.remove(currentUser.profilePhoto);
+             }catch(error){
+                 //log file could not be deleted .. will delete later
+                 console.log('DELETE ERROR');
+                 console.log(error);
+             }
+
             res.sendStatus(httpStatus.NO_CONTENT);
         }else{
             next(createError(httpStatus.UNPROCESSABLE_ENTITY,'Image file should be present'));

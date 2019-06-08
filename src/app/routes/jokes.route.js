@@ -1,27 +1,19 @@
 import express from 'express';
 import validate  from 'express-validation';
-import multer from 'multer';
-import {jokeCreateValidator} from '../../app/middlewares/validators/joke_validator'
-
-// const commentValidator = require('../../app/middlewares/validators/comment_validator');
+import jokeValidator from '../../app/middlewares/validators/joke_validator'
+import  commentValidator from '../../app/middlewares/validators/comment_validator';
 import JokeController from '../../app/controllers/joke.controller';
-// const authMiddleWare = require('../../app/middlewares/auth_middleware');
 import paginationMiddleWare from '../../app/middlewares/pagination_middleware';
 import { jwtRequiredAuthentication, jwtOptionalAuthentication } from '../middlewares/auth_middleware';
+import FileUploader from '../helpers/file_uploader';
 
 
 const router = express.Router();
-const upload = multer({
-      storage: multer.memoryStorage(),
-      limits: {
-        fileSize: 5 * 1024 * 1024 // no larger than 5mb, you can change as needed.
-      }
-    });
-
+const fileUploader = new FileUploader();
 
 router.route('/')
       .get([paginationMiddleWare, jwtOptionalAuthentication], JokeController.getJokes)                
-      .post([jwtRequiredAuthentication, upload.single('image') /*validate(jokeCreateValidator)*/], JokeController.addJoke);
+      .post([jwtRequiredAuthentication, fileUploader.imageUploadMiddleWare(), validate(jokeValidator.addJoke)], JokeController.addJoke);
 
 
 router.route('/popular')
@@ -37,6 +29,6 @@ router.route('/:jokeId/likes')
 
 router.route('/:jokeId/comments')
             .get([paginationMiddleWare], JokeController.getJokeComments)
-            .post([jwtOptionalAuthentication /*, validate(commentValidator.addComment)*/], JokeController.addJokeComment);      
+            .post([jwtOptionalAuthentication, validate(commentValidator.addComment)], JokeController.addJokeComment);      
 
 export default router;

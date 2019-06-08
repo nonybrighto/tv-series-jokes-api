@@ -1,16 +1,13 @@
 import express from 'express';
-import multer from 'multer';
+import validate  from 'express-validation';
 import userController from '../controllers/user.controller';
 import {jwtRequiredAuthentication} from '../middlewares/auth_middleware';
 import paginationMiddleware from '../middlewares/pagination_middleware';
+import FileUploader from '../helpers/file_uploader';
+import userValidator from '../../app/middlewares/validators/user_validator'
 
 const router = express.Router();
-const upload = multer({
-      storage: multer.memoryStorage(),
-      limits: {
-        fileSize: 2 * 1024 * 1024 // no larger than 5mb, you can change as needed.
-      }
-    });
+const fileUploader = new FileUploader();
 
 
 router.route('/')
@@ -18,7 +15,7 @@ router.route('/')
 router.route('/favorites/jokes')
       .get([jwtRequiredAuthentication, paginationMiddleware], userController.getFavoriteJokes);
 router.route('/photo')
-      .put([jwtRequiredAuthentication, upload.single('image')], userController.changeProfilePhoto);
+      .put([jwtRequiredAuthentication, fileUploader.imageUploadMiddleWare()], userController.changeProfilePhoto);
            
 
 router.route('/favorites/jokes/:jokeId')
@@ -30,7 +27,7 @@ router.route('/jokes')
 
 
 router.route('/password')
-      .post([jwtRequiredAuthentication],userController.changePassword);
+      .post([validate(userValidator.changePassword),jwtRequiredAuthentication],userController.changePassword);
 
 
 export default router;

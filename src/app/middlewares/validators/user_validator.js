@@ -4,10 +4,25 @@ import joi from 'joi';
 const addUser = {
     
     body: {
-        username: joi.string().trim().min(3).required().label('Username should be three characters or more'),
-        email: joi.string().trim().email().required().label('Please use a valid email'),
+        // @ts-ignore
+        username: joi.string().trim().min(3).required().error(_=> {
+            return {
+              message: "Username should be three characters or more"
+            };
+          }),
+        // @ts-ignore
+        email: joi.string().trim().email().required().error(_ => {
+            return {
+              message: "Please use a valid email"
+            };
+          }),
         password: joi.string().min(4)
-                .required().label('Your password should be 4 or more characters')
+                // @ts-ignore
+                .required().error(_ => {
+                    return {
+                      message: "Your password should be 4 or more characters"
+                    };
+                  })
     }
 }
 
@@ -16,7 +31,13 @@ const changePassword = {
     body: {
         oldPassword:joi.string().min(3).required(),
         newPassword:joi.string().min(4)
-        .required().label('Your password should be six or more characters')
+        // @ts-ignore
+        .required().error(_ => {
+            return {
+              message: "Your password should be 4 or more characters"
+            };
+          })
+
     }
 }
 

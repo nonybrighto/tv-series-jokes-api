@@ -35,7 +35,7 @@ class Pagination{
 
         let paginationObject = {
             totalPages: this.getTotalPages(),
-            limit: this.limit,
+            perPage: this.limit,
             currentPage: this.page,
             ...(this.hasPreviousPage() && {previousPage: this.page - 1}),
             ...(this.hasNextPage() && {nextPage: this.page + 1}),

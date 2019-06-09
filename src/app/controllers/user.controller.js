@@ -110,8 +110,8 @@ async function changeProfilePhoto(req, res, next){
                  console.log('DELETE ERROR');
                  console.log(error);
              }
-
-            res.sendStatus(httpStatus.NO_CONTENT);
+             let updatedUser = await User.scope('withHidden').findByPk(currentUserId);
+            return res.status(httpStatus.OK).send(updatedUser);
         }else{
             next(createError(httpStatus.UNPROCESSABLE_ENTITY,'Image file should be present'));
         }

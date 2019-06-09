@@ -102,7 +102,7 @@ module.exports = (sequelize, DataTypes) => {
     let expirationDate = new Date();
     expirationDate.setDate(new Date().getDate() + expireDays);
 
-    return {token: this.generateJwtToken(), tokenExpires: expirationDate, user: {id: this.id, username: this.username, email: this.email}};
+    return {token: this.generateJwtToken(), tokenExpires: expirationDate, user: {id: this.id, username: this.username, email: this.email, profilePhoto: this.profilePhoto, followerCount: this.followerCount, followingCount: this.followingCount}};
   }
 
   User.getUsers = async function({currentUserId, userId, followers, following, limit, offset}){

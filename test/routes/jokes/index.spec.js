@@ -55,7 +55,7 @@ describe('jokes/', function(){
                     ownerId: owner.id,
                     imageUrl: 'http://imageUrl'
                 };
-                Joke.create(jokeProperties)
+                await Joke.create(jokeProperties)
 
                let response = await chai.request(app)
                 .get('/api/v1/jokes/')
@@ -90,29 +90,29 @@ describe('jokes/', function(){
                 title:'popular Joke title',
                 text:'joke text',
                 commentCount: 22,
+                likeCount: 50000,
+                movieId: movie.id,
+                ownerId: owner.id,
+                imageUrl: 'http://imageUrl'
+            };
+            let secondMostPopular = {
+                title:'Joke title',
+                text:'joke text',
+                commentCount: 22,
                 likeCount: 5000,
                 movieId: movie.id,
                 ownerId: owner.id,
                 imageUrl: 'http://imageUrl'
             };
-            let jokeProperties2 = {
-                title:'Joke title',
-                text:'joke text',
-                commentCount: 22,
-                likeCount: 5,
-                movieId: movie.id,
-                ownerId: owner.id,
-                imageUrl: 'http://imageUrl'
-            };
             Joke.create(morePopularJokeProperties);
-            Joke.create(jokeProperties2);
+            Joke.create(secondMostPopular);
 
            let response = await chai.request(app)
             .get('/api/v1/jokes/')
             .set('Content-Type','application/json');
             expect(response).to.have.status(200);
-            expect(response.body).to.have.property('results').with.lengthOf(1);
             expect(response.body.results[0].title).to.be.equals(morePopularJokeProperties.title);
+            expect(response.body.results[1].title).to.be.equals(secondMostPopular.title);
     });
         });
 

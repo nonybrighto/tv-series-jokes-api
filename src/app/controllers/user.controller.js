@@ -3,13 +3,12 @@ import createError from 'http-errors';
 import models from '../models';
 import * as fb from '../../config/firebase_admin';
 import listResponse from '../helpers/list_response';
+import internalError from '../helpers/internal_error';
 
 
 const User = models.User;
 const Joke = models.Joke;
 const UserJokeFavorite = models.UserJokeFavorite;
-const sequelize = models.sequelize;
-
 
 async function getCurrentUser(req, res, next){
 
@@ -21,8 +20,7 @@ async function getCurrentUser(req, res, next){
         res.status(httpStatus.OK).send(currentUser);
 
     }catch(error){
-        console.log(error);
-        next(createError('Error occured while changing current user'));
+        return next(internalError('getting current user', error));
     }
 
 }
@@ -35,12 +33,11 @@ async function getFavoriteJokes(req, res, next){
         await listResponse({
             itemCount: await UserJokeFavorite.count({where:{userId: currentUserId}}),
             getItems: async (offset, limit) => await  Joke.getJokes({ currentUserId: currentUserId, favorite: true, offset: offset, limit: limit }),
-            errorMessage: 'Error occured while getting favorite jokes'
+            errorMessage: 'getting user\'s favorite jokes'
         })(req, res, next);
 
     }catch(error){
-        console.log(error);
-        next(createError('Error occured while getting favorite jokes'));
+        return next(internalError('getting user\'s favorite jokes', error));
     }
 }
 async function addJokeToFavorite(req, res, next){
@@ -56,8 +53,7 @@ async function addJokeToFavorite(req, res, next){
             return res.sendStatus(httpStatus.NO_CONTENT);
         }
     }catch(error){
-        console.log(error);
-        next(createError('Error occured while adding favorite joke'));
+        return next(internalError('adding favorite joke', error));
     }
 }
 async function removeJokeFromFavorite(req, res, next){
@@ -71,12 +67,10 @@ async function removeJokeFromFavorite(req, res, next){
             return res.sendStatus(httpStatus.NO_CONTENT);
         }else{
             next(createError(httpStatus.NOT_FOUND,'Joke not in favorite'));
-            
         }
 
     }catch(error){
-        console.log(error);
-        next(createError('Error occured while removing favorite joke'));
+        return next(internalError('removing favorite joke', error));
     }
 }
 async function getUserJokes(req, res, next){
@@ -87,12 +81,11 @@ async function getUserJokes(req, res, next){
         await listResponse({
             itemCount: await Joke.count({where:{ownerId: currentUserId}}),
             getItems: async (offset, limit) => await  Joke.getJokes({ offset: offset, limit: limit, currentUserId: currentUserId, ownerId: currentUserId }),
-            errorMessage: 'Error occured while getting user jokes'
+            errorMessage: 'getting user\'s jokes'
         })(req, res, next);
 
     }catch(error){
-        console.log(error);
-        next(createError('Error occured while getting user jokes joke'));
+        return next(internalError('getting user\'s jokes', error));
     }
 }
 
@@ -124,8 +117,7 @@ async function changeProfilePhoto(req, res, next){
         }
 
     }catch(error){
-        console.log(error);
-        next(createError('Error occured while changing profile photo'));
+        return next(internalError('changing profile photo', error));
     }
 }
 
@@ -149,8 +141,7 @@ async function changePassword(req, res, next){
             next(createError(httpStatus.FORBIDDEN, 'not permitted to change password'));
         }
     }catch(error){
-        console.log(error);
-        next(createError('Error occured while changing password'));
+        return next(internalError('changing password', error));
     }
 
 }

@@ -2,9 +2,9 @@ import httpStatus from 'http-status';
 import createError from 'http-errors';
 import models from '../models';
 import listResponse from '../helpers/list_response';
+import internalError from '../helpers/internal_error';
 
 
-const User = models.User;
 const Joke = models.Joke;
 const Movie = models.Movie;
 const UserMovieFollow = models.UserMovieFollow;
@@ -24,8 +24,7 @@ async function getMovie(req, res, next){
                 next(createError(httpStatus.NOT_FOUND, 'Movie could not be found'));
             }
    }catch(error){
-       console.log(error);
-    next(createError('Internal error occured while getting movie'));
+       return next(internalError('getting movie', error));
    }
 }
 async function getMovies(req, res, next){
@@ -35,12 +34,11 @@ async function getMovies(req, res, next){
     await listResponse({
         itemCount: await Movie.count(),
         getItems: async (offset, limit) => await  Movie.getMovies({ offset: offset, limit: limit, currentUserId: currentUserId }),
-        errorMessage: 'Error occured while getting users'
+        errorMessage: 'getting movies'
     })(req, res, next);
 
    }catch(error){
-      
-    next(createError('Internal error occured while getting movies'));
+    return next(internalError('getting movies', error));
    }
 }
 async function getMovieJokes(req, res, next){
@@ -53,12 +51,11 @@ async function getMovieJokes(req, res, next){
         await listResponse({
             itemCount: await Joke.count({where:{movieId: movieId}}),
             getItems: async (offset, limit) => await  Joke.getJokes({ offset: offset, limit: limit, currentUserId: currentUserId, movieId: movieId }),
-            errorMessage: 'Error occured while getting movie jokes'
+            errorMessage: 'getting movie jokes'
         })(req, res, next);
 
    }catch(error){
-    console.log(error);
-    next(createError('Internal error occured while getting movies jokes'));
+    return next(internalError('getting movies jokes', error));
    }
 }
 async function followMovie(req, res, next){
@@ -80,7 +77,8 @@ async function followMovie(req, res, next){
     }catch(error){
         console.log(error);
         tr.rollback();
-     next(createError('Internal error occured while following movie'));
+        return next(internalError('following movie', error));
+     
     }
 }
 async function unfollowMovie(req, res, next){
@@ -97,13 +95,12 @@ async function unfollowMovie(req, res, next){
             tr.commit();
             return res.sendStatus(httpStatus.NO_CONTENT);
         }else{
-            return next(next(createError(httpStatus.NOT_FOUND, 'Movie not followed')));
+            return next(next(createError(httpStatus.NOT_FOUND, 'Movie not unfollowed')));
         }
          
     }catch(error){
-        console.log(error);
         tr.rollback();
-     next(createError('Internal error occured while following movie'));
+        return next(internalError('unfollowing movie', error));
     }
   
 }

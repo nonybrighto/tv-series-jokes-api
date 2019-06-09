@@ -2,6 +2,7 @@ import httpStatus from 'http-status';
 import createError from 'http-errors';
 import models from '../models';
 import listResponse from '../helpers/list_response';
+import internalError from '../helpers/internal_error';
 
 
 const User = models.User;
@@ -16,11 +17,10 @@ async function getAllUsers(req, res, next){
         await listResponse({
             itemCount: await User.count(),
             getItems: async (skip, limit) => await  User.getUsers({ currentUserId: currentUserId, offset: skip, limit: limit }),
-            errorMessage: 'Error occured while getting users'
+            errorMessage: 'getting users'
         })(req, res, next);
     }catch(error){
-        console.log(error);
-        next(createError('Error occured while getting users'));
+        return next(internalError('getting users', error));
     }  
 }
 
@@ -40,8 +40,7 @@ async function getUser(req, res, next){
 
 
     }catch(error){
-        console.log(error);
-        next(createError('Error occured while getting user'));
+        return next(internalError('getting user', error));
     }
 
 }
@@ -58,7 +57,7 @@ async function getUserFollowers(req, res, next){
         })(req, res, next);
 
     }catch(error){
-        next(createError('Error occured while getting user followers'));
+        return next(internalError('getting user followers', error));
     }
 }
 
@@ -79,9 +78,8 @@ async function followUser(req, res, next){
          return res.sendStatus(httpStatus.NO_CONTENT);
          
     }catch(error){
-        console.log(error);
         tr.rollback();
-     next(createError('Internal error occured while following user'));
+        return next(internalError('following user', error));
     }
 
 }
@@ -104,9 +102,8 @@ async function unfollowUser(req, res, next){
         }
          
     }catch(error){
-        console.log(error);
         tr.rollback();
-     next(createError('Internal error occured while unfollowing user'));
+        return next(internalError('unfollowing user', error));
     }
 
 }
@@ -120,12 +117,12 @@ async function getUserFollowing(req, res, next){
         await listResponse({
             itemCount: await UserFriendFollow.count({where:{followerId: userId}}),
             getItems: async (skip, limit) => await  User.getUsers({ currentUserId: currentUserId, userId: userId, following: true, offset: skip, limit: limit }),
-            errorMessage: 'Error occured while getting users'
+            errorMessage: 'getting users'
         })(req, res, next);
 
 
     }catch(error){
-        next(createError('Error occured while getting user following'));
+        return next(internalError('getting users', error));
     }
 
 }
@@ -139,12 +136,11 @@ async function getUserJokes(req, res, next){
         await listResponse({
             itemCount: await Joke.count({where:{ownerId: userId}}),
             getItems: async (offset, limit) => await  Joke.getJokes({ offset: offset, limit: limit, currentUserId: currentUserId, ownerId: userId }),
-            errorMessage: 'Error occured while getting user jokes'
+            errorMessage: 'getting user jokes'
         })(req, res, next);
 
    }catch(error){
-    console.log(error);
-    next(createError('Internal error occured while getting user jokes'));
+    return next(internalError('getting user jokes', error));
    }
 
 }
@@ -169,8 +165,7 @@ async function changePassword(req, res, next){
             next(createError(httpStatus.FORBIDDEN, 'not permitted to change password'));
         }
     }catch(error){
-        console.log(error);
-        next(createError('Error occured while changing password'));
+        return next(internalError('changing password', error));
     }
 
 }

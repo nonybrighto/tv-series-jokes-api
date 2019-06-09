@@ -51,9 +51,8 @@ expressValidation.options({
 app.use((err, req, res, next) => {
 		if (err instanceof expressValidation.ValidationError) {
 			// validation error contains errors which is an array of error each containing message[]
-			//const unifiedErrorMessage = err.errors.map(error => error.messages.join('. ')).join(' and ');
-			//message = 'Validation failed';
-			return next(createHttpError(err.status, err));
+			const unifiedErrorMessage = err.errors.map(error => error.messages.join('. ')).join(' and ');
+			return next(createHttpError(err.status, unifiedErrorMessage));
 		}
 		return next(err);
   });
@@ -63,13 +62,14 @@ app.use((err, req, res, next) => {
   app.use((err, req, res, next) => {
 
 		let responseBody = {};
-		responseBody.message = err.isPublic ? err.message : httpStatus[err.status];
-		if(config.get('NODE_ENV') === 'development'){
-			responseBody.stack = err.stack;
+		responseBody.message = err.message;
+		if(err.status >= 500){
+			//log the err.error
 		}
-		// if(err.errors){
-		// 	responseBody.errors = err.errors;
-		// }
+		if(config.get('NODE_ENV') === 'development'){
+			responseBody.stack = (err.status >= 500) ? err.error.stack :err.stack;
+		}
+		console.log(err);
 		return res.status(err.status).json(responseBody);
 	}
   );

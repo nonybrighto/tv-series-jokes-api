@@ -2,6 +2,7 @@ import models from  '../models/';
 import createError from 'http-errors';
 import httpStatus from 'http-status';
 import passport from 'passport';
+import internalError from '../helpers/internal_error';
 
 const User = models.User;
 const JwtTokenBlacklist = models.JwtTokenBlacklist;
@@ -17,8 +18,7 @@ async function register(req, res, next){
             res.status(httpStatus.CREATED).send(userRegistered.toAuthJSON());
         }
     }catch(error){
-        console.log(error);
-        next(createError('Error occured while adding user'));
+        next(internalError('adding user', error));
      }
 }
 
@@ -52,8 +52,7 @@ async function refreshJwtToken(req, res, next){
             next(createError(httpStatus.NOT_FOUND, 'Error occured while refreshing token'));
         }
     }catch(error){
-        console.log(error);
-        next(createError('Error occured while refreshing token'));
+        next(internalError('refreshing token', error));
     }
 }
 

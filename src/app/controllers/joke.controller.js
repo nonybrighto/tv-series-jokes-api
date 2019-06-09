@@ -5,6 +5,7 @@ import * as fb from '../../config/firebase_admin';
 import models from '../models';
 import listResponse from '../helpers/list_response';
 import config from '../../config/config';
+import internalError from '../helpers/internal_error';
 
 
 const User = models.User;
@@ -73,9 +74,8 @@ async function addJoke(req, res, next){
 
 
     }catch(error){
-        console.log(error);
         tr.rollback();
-        next(createError('Internal error occured while adding joke'));
+        return next(internalError('adding joke', error));
     }
     
 }
@@ -105,9 +105,8 @@ async function deleteJoke(req, res, next){
         }
 
     }catch(error){
-        console.log(error);
         tr.rollback();
-        next(createError('Internal error occured while deleting joke'));
+        return next(internalError('deleting joke', error));
     }
 }
 
@@ -129,12 +128,11 @@ async function getJokes(req, res, next){
                 });
                 return jokes;
             },
-            errorMessage: 'Error occured while getting jokes'
+            errorMessage: 'getting jokes'
         })(req, res, next);
 
-    }catch(err){
-        console.log(err);
-        next(createError('Internal error occured while getting jokes'));
+    }catch(error){
+        return next(internalError('getting jokes', error));
     }
 
 }
@@ -147,50 +145,15 @@ async function getJokeLikers(req, res, next){
         await listResponse({
             itemCount: await UserJokeLike.count({where: {jokeId: jokeId}}),
             getItems: async (skip, limit) => await UserJokeLike.likers(jokeId),
-            errorMessage: 'Error occured while getting joke likes'
+            errorMessage: 'getting joke likes'
         })(req, res, next);
         
 
-    }catch(err){
-        console.log(err);
-        next(createError('Internal error occured while getting joke likes'));
+    }catch(error){
+        return next(internalError('getting joke likes', error));
     }
 
 }
-
-// async function deleteJoke(req, res, next){
-
-//     try{
-//         let jokeId = req.params.jokeId;
-//         let currentUserId = req.user.id;
-
-//         let joke = await Joke.findByPk(jokeId);
-//         if(!joke){
-//             next(createError(httpStatus.NOT_FOUND, 'Joke could not be found'));
-//         }else if(joke.ownerId === currentUserId){
-            
-//             let deleted = await joke.destroy();
-//             if(deleted){
-//                 //TODO:remove from server
-//                 return res.sendStatus(httpStatus.NO_CONTENT);
-//             }else{
-//                 console.log('error');
-//                 return next(createError('Internal error occured while deleting joke'));
-//             }
-
-//         }else{
-//             next(createError(httpStatus.FORBIDDEN, 'You dont have the permission to delete this joke'));
-//         }
-
-
-
-
-//     }catch(error){
-//         console.log(error);
-//         return next(createError('Internal error occured while deleting joke'));
-//     }
-    
-// }
 
 async function likeJoke(req, res, next){
     
@@ -212,9 +175,8 @@ async function likeJoke(req, res, next){
         return res.sendStatus(httpStatus.NO_CONTENT);
         
     }catch(error){
-        console.log(error);
         tr.rollback();
-        return next(createError('Internal error occured while liking joke'));
+        return next(internalError('liking joke', error));
     }
     
 }
@@ -244,9 +206,8 @@ async function unlikeJoke(req, res, next){
         
         
     }catch(error){
-        console.log(error);
         tr.rollback();
-        return next(createError('Internal error occured while unliking joke'));
+        return next(internalError('unliking joke', error));
     }
     
 }
@@ -274,9 +235,8 @@ async function addJokeComment(req, res, next){
          res.status(httpStatus.CREATED).send(comment);
 
     }catch(error){
-        console.log(error);
         tr.rollback();
-        return next(createError('Internal error occured while adding comment'));
+        return next(internalError('adding comment', error));
     }
     
 }
@@ -293,12 +253,11 @@ async function getJokeComments(req, res, next){
                 model: User,
                 as: 'owner'
               }], offset: skip, limit: limit }),
-            errorMessage: 'Error occured while getting users'
+            errorMessage: 'getting comments'
         })(req, res, next);
         
     }catch(error){
-        console.log(error);
-        return next(createError('Internal error occured while getting comments'));
+        return next(internalError('getting comments', error));
     }
     
 }

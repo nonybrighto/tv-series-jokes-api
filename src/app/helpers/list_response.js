@@ -1,6 +1,7 @@
 import createError from 'http-errors';
 import httpStatus from 'http-status';
 import Pagination from './pagination';
+import internalError from './internal_error';
 
 
 function listResponse({itemCount, errorMessage, getItems}){
@@ -14,7 +15,7 @@ function listResponse({itemCount, errorMessage, getItems}){
             return res.status(httpStatus.OK).send({...pagination.generatePaginationObject(), results: gottenItems});
         }catch(error){
             console.log(error);
-            return next(createError(errorMessage || 'Internal error occured while getting items'));
+            return next(internalError(errorMessage || 'getting items', error));
         }
    }
 }

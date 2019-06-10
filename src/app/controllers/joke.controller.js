@@ -229,9 +229,12 @@ async function addJokeComment(req, res, next){
 
          await Joke.update({commentCount: models.sequelize.literal('"commentCount" + 1')}, {where: {id: jokeId}, transaction: tr});
 
-         tr.commit();
+         await tr.commit();
 
-         let comment = await Comment.findOne({where: {id: commentAdded.id }});
+         let comment = await Comment.findOne({where: {id: commentAdded.id }, include: [{
+            model: User,
+            as: 'owner'
+          }]});
          res.status(httpStatus.CREATED).send(comment);
 
     }catch(error){

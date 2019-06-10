@@ -59,7 +59,7 @@ async function addJoke(req, res, next){
         await User.update({jokeCount: models.sequelize.literal('"jokeCount" + 1')}, {where: {id: currentUserId}, transaction: tr});
         await Movie.update({jokeCount: models.sequelize.literal('"jokeCount" + 1')}, {where: {tmdbMovieId: tmdbMovieId}, transaction: tr});
 
-        tr.commit();
+        await tr.commit();
 
         let joke = await Joke.findOne({where: {id: jokeAdded.id}, include: [{
             model: User,

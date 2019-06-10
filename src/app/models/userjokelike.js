@@ -26,7 +26,8 @@ module.exports = (sequelize, DataTypes) => {
   UserJokeLike.likers = async function(jokeId){
 
        
-        return sequelize.query(`SELECT liker.id, liker.username,liker."profilePhoto"
+        return sequelize.query(`SELECT liker.id, liker.username,liker."profilePhoto",
+                                liker."jokeCount", liker."followerCount", liker."followingCount"
                               FROM "Users" as liker 
                               INNER JOIN "UserJokeLikes" as jokeLikes 
                               on liker.id = jokeLikes."userId"  

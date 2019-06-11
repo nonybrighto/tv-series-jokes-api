@@ -7,6 +7,7 @@ import internalError from '../helpers/internal_error';
 
 const Joke = models.Joke;
 const Movie = models.Movie;
+const User = models.User;
 const UserMovieFollow = models.UserMovieFollow;
 const sequelize = models.sequelize;
 
@@ -58,6 +59,26 @@ async function getMovieJokes(req, res, next){
     return next(internalError('getting movies jokes', error));
    }
 }
+
+async function getMovieFollowers(req, res, next){
+
+
+    try{
+        let movieId = req.params.movieId;
+        let currentUserId = (req.user)? req.user.id: null;
+        await listResponse({
+            itemCount: await UserMovieFollow.count({where: {movieId:movieId}}),
+            getItems: async (skip, limit) => await User.getUsers({ currentUserId: currentUserId, movieId: movieId, offset: skip, limit: limit }),
+            errorMessage: 'getting movies'
+        })(req, res, next);
+    
+       }catch(error){
+        return next(internalError('getting movies', error));
+       }
+
+
+
+}
 async function followMovie(req, res, next){
 
     let tr = await sequelize.transaction();
@@ -106,4 +127,4 @@ async function unfollowMovie(req, res, next){
 }
 
 
-export default {getMovie, getMovies, getMovieJokes, followMovie, unfollowMovie}
+export default {getMovie, getMovies, getMovieJokes, getMovieFollowers,followMovie, unfollowMovie}

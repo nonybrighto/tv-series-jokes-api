@@ -15,7 +15,8 @@ router.route('/:movieId')
 router.route('/:movieId/jokes')
       .get([jwtOptionalAuthentication, paginationMiddleware],movieController.getMovieJokes);
 
-router.route('/:movieId/following')
+router.route('/:movieId/followers')
+      .get([jwtOptionalAuthentication, paginationMiddleware], movieController.getMovieFollowers)
       .put([jwtRequiredAuthentication], movieController.followMovie)
       .delete([jwtRequiredAuthentication], movieController.unfollowMovie)
 

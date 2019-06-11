@@ -105,7 +105,7 @@ module.exports = (sequelize, DataTypes) => {
     return {token: this.generateJwtToken(), tokenExpires: expirationDate, user: {id: this.id, username: this.username, email: this.email, profilePhoto: this.profilePhoto, followerCount: this.followerCount, followingCount: this.followingCount}};
   }
 
-  User.getUsers = async function({currentUserId, userId, followers, following, limit, offset}){
+  User.getUsers = async function({currentUserId, userId, followers, following, movieId, limit, offset}){
 
 
     let userFollowString = '';
@@ -114,6 +114,7 @@ module.exports = (sequelize, DataTypes) => {
     let limitOffsetString = '';
     let followersString = '';
     let followingString = '';
+    let movieString = '';
     if(currentUserId){
       userFollowString = ' , flwr."followingId" IS NOT NULL as "followed", flwg."followerId" IS NOT NULL as "following" ';
 
@@ -137,33 +138,33 @@ module.exports = (sequelize, DataTypes) => {
       "UserFriendFollows" as ffl
       ON
       usr.id = ffl."followingId" AND ffl."followerId" = :userId `;
+    }else if(movieId){
+        movieString = ` INNER JOIN 
+        "UserMovieFollows" as umf
+        ON
+        usr."id" = umf."userId" AND umf."movieId" = :movieId `
     }
 
     if(userId && !followers && !following){
       whereString = ' WHERE usr.id = :userId '
-    }else{
-      limitOffsetString = ` LIMIT :limit OFFSET :offset `;
     }
+    
+    limitOffsetString = ` LIMIT :limit OFFSET :offset `;
 
-    User.getUserFollowers = async function({userId, currentUserId, limit, offset}){
-
-
-
-    }
-
-
-
-    return sequelize.query(`SELECT usr.* ${userFollowString}
+    return sequelize.query(`SELECT usr.id, usr.username,usr."profilePhoto",
+                        usr."jokeCount", usr."followerCount",
+                        usr."followingCount" ${userFollowString}
                         FROM "Users" as usr
                          ${followersString}
                          ${followingString}
+                         ${movieString}
                          ${userFollowJoinString} 
                          ${whereString}
                          ${limitOffsetString} `,                             
                           { 
                             nest: true,
                             model: sequelize.models.User,
-                            replacements: { currentUserId: currentUserId, userId: userId, limit: limit, offset: offset },
+                            replacements: { currentUserId: currentUserId, userId: userId, movieId:movieId, limit: limit, offset: offset },
                             type: sequelize.QueryTypes.SELECT
                           });
   }

@@ -29,6 +29,9 @@ router.route('/:jokeId/likes')
 
 router.route('/:jokeId/comments')
             .get([paginationMiddleWare], JokeController.getJokeComments)
-            .post([jwtOptionalAuthentication, validate(commentValidator.addComment)], JokeController.addJokeComment);      
+            .post([jwtOptionalAuthentication, validate(commentValidator.addComment)], JokeController.addJokeComment);
+            
+router.route('/:jokeId/reports')
+            .put([jwtOptionalAuthentication], JokeController.reportJoke);
 
 export default router;

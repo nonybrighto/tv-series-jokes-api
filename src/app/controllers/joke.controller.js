@@ -11,6 +11,7 @@ import internalError from '../helpers/internal_error';
 const User = models.User;
 const Joke = models.Joke;
 const UserJokeLike = models.UserJokeLike;
+const JokeReport = models.JokeReport;
 const Comment = models.Comment;
 const Movie = models.Movie;
 const sequelize = models.sequelize;
@@ -264,5 +265,20 @@ async function getJokeComments(req, res, next){
     }
     
 }
+async function reportJoke(req, res, next){
 
-export default {addJoke, getJokes, deleteJoke, getJokeLikers, likeJoke, unlikeJoke, addJokeComment, getJokeComments};
+    try{
+
+        let jokeId = req.params.jokeId;
+        let currentUserId = (req.user) ? req.user.id : null;
+
+        await JokeReport.create({userId: currentUserId, jokeId:jokeId});
+        res.sendStatus(httpStatus.NO_CONTENT);
+        
+    }catch(error){
+        return next(internalError('reporting joke', error));
+    }
+    
+}
+
+export default {addJoke, getJokes, deleteJoke, getJokeLikers, likeJoke, unlikeJoke, addJokeComment, getJokeComments, reportJoke};

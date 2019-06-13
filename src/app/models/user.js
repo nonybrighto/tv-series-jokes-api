@@ -102,7 +102,7 @@ module.exports = (sequelize, DataTypes) => {
     let expirationDate = new Date();
     expirationDate.setDate(new Date().getDate() + expireDays);
 
-    return {token: this.generateJwtToken(), tokenExpires: expirationDate, user: {id: this.id, username: this.username, email: this.email, profilePhoto: this.profilePhoto, followerCount: this.followerCount, followingCount: this.followingCount}};
+    return {token: this.generateJwtToken(), tokenExpires: expirationDate, user: {id: this.id, username: this.username, email: this.email, profilePhoto: this.profilePhoto, followerCount: this.followerCount, followingCount: this.followingCount, jokeCount: this.jokeCount}};
   }
 
   User.getUsers = async function({currentUserId, userId, followers, following, movieId, limit, offset}){
@@ -147,9 +147,9 @@ module.exports = (sequelize, DataTypes) => {
 
     if(userId && !followers && !following){
       whereString = ' WHERE usr.id = :userId '
+    }else{
+      limitOffsetString = ` LIMIT :limit OFFSET :offset `;
     }
-    
-    limitOffsetString = ` LIMIT :limit OFFSET :offset `;
 
     return sequelize.query(`SELECT usr.id, usr.username,usr."profilePhoto",
                         usr."jokeCount", usr."followerCount",

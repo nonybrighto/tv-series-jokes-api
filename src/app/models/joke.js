@@ -94,7 +94,7 @@ module.exports = (sequelize, DataTypes) =>{
     return sequelize.query(`SELECT joke.*, 
       ${likeFavSelectString}
       owner.id as "owner.id", owner.username as "owner.username",  
-      owner."profilePhoto" as "owner.profilePhoto",
+      owner."profilePhoto" as "owner.profilePhoto", owner."followerCount" as "owner.followerCount", owner."followingCount" as "owner.followingCount", owner."jokeCount" as "owner.jokeCount", 
       movie.id as "movie.id", movie.name as "movie.name", movie."tmdbMovieId" as "movie.tmdbMovieId",
       movie."jokeCount" as "movie.jokeCount", movie."followerCount" as "movie.followerCount", 
       movie."firstAirDate" as "movie.firstAirDate" 

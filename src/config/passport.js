@@ -64,7 +64,7 @@ function configurePassport(){
 
         try{
             // @ts-ignore
-            const user = await User.findOrCreateSocialUser({ username: userPayload.username, email: userPayload.email, profilePhoto: userPayload.picture});
+            const user = await User.findOrCreateSocialUser({ name: userPayload.name, email: userPayload.email, profilePhoto: userPayload.picture});
             return done(null, user);
         }catch(error){
             done(error, false);
@@ -79,9 +79,10 @@ passport.use(new FacebookTokenStrategy({
 
     try{
         // @ts-ignore
-        const user = await User.findOrCreateSocialUser({ username: profile.displayName, email: profile.emails[0].value, profilePhoto: profile.photos[0].value});
+        const user = await User.findOrCreateSocialUser({ name: profile.displayName, email: profile.emails[0].value, profilePhoto: profile.photos[0].value});
         return done(null, user);
     }catch(error){
+        console.log(error);
         done(error, false);
     }
   }

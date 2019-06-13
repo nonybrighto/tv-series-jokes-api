@@ -204,7 +204,7 @@ User.findOrCreateSocialUser = async function({email, name, profilePhoto}){
   }else{
       let username = name.split(' ')[0].trim();
       while(await this.findOne({where:{username: username}})){
-          let randomNumbers = Math.floor(Math.random() * 200);
+          let randomNumbers = Math.floor(Math.random() * 90);
           username = username+randomNumbers;
       }
 

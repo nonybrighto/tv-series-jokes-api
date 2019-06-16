@@ -21,7 +21,6 @@ async function addJoke(req, res, next){
     let tr = await sequelize.transaction();
     try{
         let currentUserId = req.user.id;
-        let title = req.body.title;
         let tmdbMovieId = +req.body.tmdbMovieId;
         let text = req.body.text;    
         let canAddMovie = false;
@@ -55,7 +54,7 @@ async function addJoke(req, res, next){
                 imageUrl = await fb.upload(imageFile);
             }
             
-            let jokeAdded = await Joke.create({title:title, text:text, movieId: jokeMovie.id, ownerId: currentUserId, imageUrl: imageUrl}, {transaction: tr});
+            let jokeAdded = await Joke.create({text:text, movieId: jokeMovie.id, ownerId: currentUserId, imageUrl: imageUrl}, {transaction: tr});
 
         await User.update({jokeCount: models.sequelize.literal('"jokeCount" + 1')}, {where: {id: currentUserId}, transaction: tr});
         await Movie.update({jokeCount: models.sequelize.literal('"jokeCount" + 1')}, {where: {tmdbMovieId: tmdbMovieId}, transaction: tr});

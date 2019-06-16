@@ -4,12 +4,6 @@ const addJoke = {
     
     body: {
         // @ts-ignore
-        title: Joi.string().trim().min(3).required().error(_ => {
-            return {
-              message: "Title should be 3 characters or more"
-            };
-          }),
-        // @ts-ignore
         tmdbMovieId: Joi.number().integer().required().error(_ => {
             return {
               message: "Please provide a movie"

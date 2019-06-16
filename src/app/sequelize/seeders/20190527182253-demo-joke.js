@@ -5,7 +5,6 @@ module.exports = {
     
       return queryInterface.bulkInsert('Jokes', [
         {
-        title: 'first joke',
         text: 'The joke text',
          movieId: 1,
          ownerId: 2,
@@ -14,7 +13,6 @@ module.exports = {
          updatedAt: '2019-05-02 02:00:00',
         },
         {
-        title: 'second joke',
         text: 'The joke text text',
          movieId: 2,
          ownerId: 1,
@@ -24,7 +22,6 @@ module.exports = {
          updatedAt: '2019-05-03 02:00:00',
         },
         {
-        title: 'third joke',
         text: 'The joke text text',
          movieId: 1,
          ownerId: 2,
@@ -34,7 +31,6 @@ module.exports = {
          updatedAt: '2019-05-04 02:00:00',
         },
         {
-        title: 'fought joke - lol',
         text: 'The joke text text',
          movieId: 1,
          ownerId: 1,
@@ -44,7 +40,6 @@ module.exports = {
          updatedAt: '2019-05-04 02:00:00',
         },
         {
-        title: 'feet joke - boring',
         text: 'The joke text text',
          movieId: 1,
          ownerId: 1,

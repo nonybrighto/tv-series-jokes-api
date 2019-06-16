@@ -3,9 +3,6 @@
 module.exports = (sequelize, DataTypes) =>{
   console.log(sequelize.models);
   const Joke = sequelize.define('Joke', {
-    title: {
-      type: DataTypes.STRING
-    },
     text: {
       type: DataTypes.TEXT
     },

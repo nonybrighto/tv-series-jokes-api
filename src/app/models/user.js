@@ -87,7 +87,7 @@ module.exports = (sequelize, DataTypes) => {
 
   User.prototype.generateJwtToken = function(){
 
-    let expireDays = config.get('jwt_token-expire-days');
+    let expireDays = config.get('jwt-token-expire-days');
 
     return jwt.sign(
         {id:this.id, username: this.username, email: this.email},
@@ -98,7 +98,7 @@ module.exports = (sequelize, DataTypes) => {
 
   User.prototype.toAuthJSON = function (){
 
-    let expireDays = config.get('jwt_token-expire-days');
+    let expireDays = config.get('jwt-token-expire-days');
     let expirationDate = new Date();
     expirationDate.setDate(new Date().getDate() + expireDays);
 

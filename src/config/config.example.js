@@ -20,7 +20,7 @@ nconf.defaults({
 	'facebook-client-id':'',
 	'facebook-client-secret':'',
 	'google-client-id':'',
-	'jwt_token-expire-days':30
+	'jwt-token-expire-days':30
 });
 
 export default nconf;

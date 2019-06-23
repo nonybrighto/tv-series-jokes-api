@@ -5,13 +5,13 @@ const addUser = {
     
     body: {
         // @ts-ignore
-        username: joi.string().trim().min(3).required().error(_=> {
+        username: joi.string().lowercase().trim().min(3).required().error(_=> {
             return {
               message: "Username should be three characters or more"
             };
           }),
         // @ts-ignore
-        email: joi.string().trim().email().required().error(_ => {
+        email: joi.string().lowercase().trim().email().required().error(_ => {
             return {
               message: "Please use a valid email"
             };

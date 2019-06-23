@@ -89,12 +89,15 @@ async function deleteJoke(req, res, next){
 
         if(!joke){
             return next(createError(httpStatus.NOT_FOUND, 'Joke could not be found'));
-        }else if(currentUserId === joke.ownerId){
+        }else if(currentUserId === joke.ownerId || req.user.isAdmin){
 
             //TODO: remove the jokes image if any
+            if(joke.imageUrl){
+                await fb.remove(joke.imageUrl);
+            }
 
             await Joke.destroy({where:{id: jokeId}, transaction: tr});
-            await User.update({jokeCount: models.sequelize.literal('"jokeCount" - 1')}, {where: {id: currentUserId}, transaction: tr});
+            await User.update({jokeCount: models.sequelize.literal('"jokeCount" - 1')}, {where: {id: joke.ownerId}, transaction: tr});
             await Movie.update({jokeCount: models.sequelize.literal('"jokeCount" - 1')}, {where: {id: jokeId}, transaction: tr});
             tr.commit();
 

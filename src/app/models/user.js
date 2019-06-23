@@ -32,7 +32,12 @@ module.exports = (sequelize, DataTypes) => {
     followingCount: {
       type: DataTypes.INTEGER,
       defaultValue: 0 
+    },
+    isAdmin: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
     }
+
   }, {
     defaultScope: {
       attributes: { exclude: ['password', 'email'] },
@@ -102,7 +107,7 @@ module.exports = (sequelize, DataTypes) => {
     let expirationDate = new Date();
     expirationDate.setDate(new Date().getDate() + expireDays);
 
-    return {token: this.generateJwtToken(), tokenExpires: expirationDate, user: {id: this.id, username: this.username, email: this.email, profilePhoto: this.profilePhoto, followerCount: this.followerCount, followingCount: this.followingCount, jokeCount: this.jokeCount}};
+    return {token: this.generateJwtToken(), tokenExpires: expirationDate, user: {id: this.id, username: this.username, email: this.email, profilePhoto: this.profilePhoto, followerCount: this.followerCount, followingCount: this.followingCount, jokeCount: this.jokeCount, isAdmin: this.isAdmin}};
   }
 
   User.getUsers = async function({currentUserId, userId, followers, following, movieId, limit, offset}){
